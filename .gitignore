@@ -1,6 +1,19 @@
-/target/
-/src/main/history/
+# Eclipse
 .classpath
 .project
-.settings/org.eclipse.core.resources.prefs
-.settings/org.eclipse.jdt.core.prefs
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+
+#openhab
+src/main/history/
