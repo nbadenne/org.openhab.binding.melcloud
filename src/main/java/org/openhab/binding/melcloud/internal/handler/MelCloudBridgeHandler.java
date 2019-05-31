@@ -15,6 +15,7 @@ package org.openhab.binding.melcloud.internal.handler;
 import static org.openhab.binding.melcloud.internal.MelCloudBindingConstants.POLLING_INTERVAL;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +36,11 @@ import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.melcloud.internal.Connection;
+import org.openhab.binding.melcloud.internal.json.Area;
 import org.openhab.binding.melcloud.internal.json.Device;
 import org.openhab.binding.melcloud.internal.json.DeviceStatus;
+import org.openhab.binding.melcloud.internal.json.Floor;
+import org.openhab.binding.melcloud.internal.json.ListDevicesResponse;
 import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,7 +162,17 @@ public class MelCloudBridgeHandler extends BaseBridgeHandler {
                     if (connection.getLoginClientRes().getErrorId() == null) {
                         try {
                             connection.pollDevices();
-                            deviceList = connection.getListDevicesResponse().getStructure().getDevices();
+                            deviceList = new ArrayList<Device>();
+                            for (ListDevicesResponse listDevicesResponse : connection.getListDevicesResponse()) {
+                                deviceList.addAll(listDevicesResponse.getStructure().getDevices());
+                                for (Floor floor : listDevicesResponse.getStructure().getFloors()) {
+                                    deviceList.addAll(floor.getDevices());
+                                }
+                                for (Area area : listDevicesResponse.getStructure().getAreas()) {
+                                    deviceList.addAll(area.getDevices());
+                                }
+                            }
+                            // deviceList = connection.getListDevicesResponse().getStructure().getDevices();
                             this.connection = connection;
                             updateStatus(ThingStatus.ONLINE);
                         } catch (Exception e) {
@@ -190,8 +204,9 @@ public class MelCloudBridgeHandler extends BaseBridgeHandler {
 
                 Connection connection = this.connection;
                 if (connection != null && connection.isConnected) {
-                    DeviceStatus deviceStatus = connection
-                            .pollDeviceStatus(Integer.parseInt(thing.getProperties().get("deviceID")));
+                    DeviceStatus deviceStatus = connection.pollDeviceStatus(
+                            Integer.parseInt(thing.getProperties().get("deviceID")),
+                            Integer.parseInt(thing.getProperties().get("buildingID")));
                     if (deviceStatus != null) {
                         for (Channel channel : handler.getChannels()) {
                             handler.updateChannels(channel.getUID().getId(), deviceStatus);

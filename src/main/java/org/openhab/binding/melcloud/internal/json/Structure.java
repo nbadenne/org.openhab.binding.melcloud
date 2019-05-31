@@ -28,10 +28,10 @@ public class Structure {
 
     @SerializedName("Floors")
     @Expose
-    private List<Object> floors = null;
+    private List<Floor> floors = null;
     @SerializedName("Areas")
     @Expose
-    private List<Object> areas = null;
+    private List<Area> areas = null;
     @SerializedName("Devices")
     @Expose
     private List<Device> devices = null;
@@ -39,19 +39,19 @@ public class Structure {
     @Expose
     private List<Object> clients = null;
 
-    public List<Object> getFloors() {
+    public List<Floor> getFloors() {
         return floors;
     }
 
-    public void setFloors(List<Object> floors) {
+    public void setFloors(List<Floor> floors) {
         this.floors = floors;
     }
 
-    public List<Object> getAreas() {
+    public List<Area> getAreas() {
         return areas;
     }
 
-    public void setAreas(List<Object> areas) {
+    public void setAreas(List<Area> areas) {
         this.areas = areas;
     }
 

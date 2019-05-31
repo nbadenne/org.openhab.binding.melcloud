@@ -94,6 +94,7 @@ public class MelCloudDiscoveryService extends AbstractDiscoveryService {
                     logger.debug("new thing ACDEVICE inside foreach deviceList");
                     Map<String, Object> deviceProperties = new HashMap<>();
                     deviceProperties.put("deviceID", device.getDeviceID().toString());
+                    deviceProperties.put("buildingID", device.getBuildingID().toString());
                     deviceProperties.put("serialNumber", device.getSerialNumber().toString());
                     deviceProperties.put("macAddress", device.getMacAddress().toString());
                     deviceProperties.put("deviceName", device.getDeviceName().toString());

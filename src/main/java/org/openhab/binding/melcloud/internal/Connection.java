@@ -15,7 +15,10 @@ package org.openhab.binding.melcloud.internal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -30,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * The {@link Connection} Manage connection to Mitsubishi Cloud (MelCloud).
@@ -44,9 +48,11 @@ public class Connection {
     private final Configuration config;
     public boolean isConnected = false;
     private static LoginClientResponse loginClientRes = new LoginClientResponse();
-    private static ListDevicesResponse listDevicesResponse = new ListDevicesResponse();
+    private static List<ListDevicesResponse> listDevicesResponse = new ArrayList<ListDevicesResponse>();
+    private Type listType = new TypeToken<ArrayList<ListDevicesResponse>>() {
+    }.getType();
 
-    public ListDevicesResponse getListDevicesResponse() {
+    public List<ListDevicesResponse> getListDevicesResponse() {
         return listDevicesResponse;
     }
 
@@ -106,7 +112,7 @@ public class Connection {
                         "https://app.melcloud.com/Mitsubishi.Wifi.Client/User/ListDevices", headers, null, null, 20000);
                 logger.debug("get response for list devices");
                 Gson gson = new Gson();
-                Connection.listDevicesResponse = gson.fromJson(response, ListDevicesResponse[].class)[0];
+                Connection.listDevicesResponse = gson.fromJson(response, listType);
 
                 logger.debug("get response for list devices in json class");
                 return true;
@@ -120,14 +126,14 @@ public class Connection {
     }
 
     @Nullable
-    public DeviceStatus pollDeviceStatus(Integer id) {
+    public DeviceStatus pollDeviceStatus(Integer deviceId, Integer buildingID) {
         if (isConnected) {
             try {
                 String response = null;
                 Properties headers = new Properties();
                 headers.put("X-MitsContextKey", loginClientRes.getLoginData().getContextKey());
-                String url = "https://app.melcloud.com/Mitsubishi.Wifi.Client/Device/Get?" + "id=" + id.toString()
-                        + "&buildingID=" + listDevicesResponse.getID();
+                String url = "https://app.melcloud.com/Mitsubishi.Wifi.Client/Device/Get?" + "id=" + deviceId
+                        + "&buildingID=" + buildingID;
 
                 response = HttpUtil.executeUrl("GET", url, headers, null, null, 2000);
                 Gson gson = new Gson();

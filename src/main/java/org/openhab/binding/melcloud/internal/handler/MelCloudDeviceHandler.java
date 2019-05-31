@@ -95,6 +95,10 @@ public class MelCloudDeviceHandler extends BaseThingHandler {
                 effectiveFlags += 1;
             }
             if (CHANNEL_OPERATION_MODE.equals(channelUID.getId())) {
+                if (cmdtoSend.getPower().equals(false)) {
+                    cmdtoSend.setPower(true);
+                    effectiveFlags += 1;
+                }
                 cmdtoSend.setOperationMode(((DecimalType) command).intValue());
                 effectiveFlags += 2;
             }
