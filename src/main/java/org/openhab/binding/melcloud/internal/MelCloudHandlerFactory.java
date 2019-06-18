@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -33,6 +32,7 @@ import org.openhab.binding.melcloud.internal.handler.MelCloudBridgeHandler;
 import org.openhab.binding.melcloud.internal.handler.MelCloudDeviceHandler;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +42,14 @@ import org.slf4j.LoggerFactory;
  *
  * @author LucaCalcaterra - Initial contribution
  */
-@NonNullByDefault
 @Component(configurationPid = "binding.melcloud", service = ThingHandlerFactory.class)
 public class MelCloudHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(MelCloudHandlerFactory.class);
 
     private Map<ThingUID, ServiceRegistration<?>> discoveryServiceRegs = new HashMap<>();
+
+    @Reference
+    private MelcloudDynamicStateDescriptionProvider melcloudDynamicStateDescriptionProvider;
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -60,14 +62,15 @@ public class MelCloudHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (LOGIN_BRIDGE_THING_TYPE.equals(thingTypeUID)) {
-            MelCloudBridgeHandler handler = new MelCloudBridgeHandler((Bridge) thing);
+            MelCloudBridgeHandler handler = new MelCloudBridgeHandler((Bridge) thing,
+                    melcloudDynamicStateDescriptionProvider);
             registerDiscoveryService(handler);
             logger.debug("createThing(): LOGIN_BRIDGE_THING_TYPE: Creating an '{}' type Thing - {}", thingTypeUID,
                     handler.getID());
             return handler;
 
         } else if (THING_TYPE_ACDEVICE.equals(thingTypeUID)) {
-            MelCloudDeviceHandler handler = new MelCloudDeviceHandler(thing);
+            MelCloudDeviceHandler handler = new MelCloudDeviceHandler(thing, melcloudDynamicStateDescriptionProvider);
             return handler;
         }
 
@@ -80,5 +83,14 @@ public class MelCloudHandlerFactory extends BaseThingHandlerFactory {
                 .registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<String, Object>()));
         logger.debug("registerMelCloudDiscoveryService(): Bridge Handler - {}, Class Name - {}, Discovery Service - {}",
                 bridgeHandler, DiscoveryService.class.getName(), discoveryService);
+    }
+
+    public MelcloudDynamicStateDescriptionProvider getMelcloudDynamicStateDescriptionProvider() {
+        return melcloudDynamicStateDescriptionProvider;
+    }
+
+    public void setMelcloudDynamicStateDescriptionProvider(
+            MelcloudDynamicStateDescriptionProvider melcloudDynamicStateDescriptionProvider) {
+        this.melcloudDynamicStateDescriptionProvider = melcloudDynamicStateDescriptionProvider;
     }
 }

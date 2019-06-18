@@ -30,6 +30,8 @@ import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+
 /**
  * The {@link MelCloudDiscoveryService} creates things based on the configured location.
  *
@@ -43,6 +45,8 @@ public class MelCloudDiscoveryService extends AbstractDiscoveryService {
 
     private final MelCloudBridgeHandler bridgeHandler;
     private @Nullable ScheduledFuture<?> discoveryJob;
+
+    private Gson gson = new Gson();
 
     /**
      * Creates a MelCloudDiscoveryService with enabled autostart.
@@ -98,6 +102,7 @@ public class MelCloudDiscoveryService extends AbstractDiscoveryService {
                     deviceProperties.put("serialNumber", device.getSerialNumber().toString());
                     deviceProperties.put("macAddress", device.getMacAddress().toString());
                     deviceProperties.put("deviceName", device.getDeviceName().toString());
+                    deviceProperties.put("deviceProps", gson.toJson(device.getDeviceProps()));
 
                     thingDiscovered(DiscoveryResultBuilder.create(deviceThing).withLabel(device.getDeviceName())
                             .withProperties(deviceProperties)

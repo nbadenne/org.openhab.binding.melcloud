@@ -14,6 +14,7 @@ package org.openhab.binding.melcloud.internal.handler;
 
 import static org.openhab.binding.melcloud.internal.MelCloudBindingConstants.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -39,9 +40,14 @@ import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
 import org.openhab.binding.melcloud.internal.Connection;
+import org.openhab.binding.melcloud.internal.MelcloudDynamicStateDescriptionProvider;
+import org.openhab.binding.melcloud.internal.StateAttribute;
+import org.openhab.binding.melcloud.internal.json.DeviceProps;
 import org.openhab.binding.melcloud.internal.json.DeviceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
 
 /**
  * The {@link MelCloudDeviceHandler} is responsible for handling commands, which are
@@ -57,10 +63,21 @@ public class MelCloudDeviceHandler extends BaseThingHandler {
     // private MelCloudConfiguration config;
     private MelCloudBridgeHandler bridgeHandler;
     private DeviceStatus deviceStatus = new DeviceStatus();
+    private DeviceProps deviceProps;
+
     DateTimeFormatter formatter = DateTimeFormatter.BASIC_ISO_DATE;
 
-    public MelCloudDeviceHandler(Thing thing) {
+    private Gson gson = new Gson();
+
+    private MelcloudDynamicStateDescriptionProvider melcloudDynamicStateDescriptionProvider;
+
+    public MelCloudDeviceHandler(Thing thing,
+            MelcloudDynamicStateDescriptionProvider melcloudDynamicStateDescriptionProvider) {
         super(thing);
+        deviceProps = gson.fromJson(thing.getProperties().get("deviceProps"), DeviceProps.class);
+        if (melcloudDynamicStateDescriptionProvider != null) {
+            this.melcloudDynamicStateDescriptionProvider = melcloudDynamicStateDescriptionProvider;
+        }
     }
 
     public MelCloudBridgeHandler getBridgeHandler() {
@@ -95,11 +112,34 @@ public class MelCloudDeviceHandler extends BaseThingHandler {
                 effectiveFlags += 1;
             }
             if (CHANNEL_OPERATION_MODE.equals(channelUID.getId())) {
-                if (cmdtoSend.getPower().equals(false)) {
-                    cmdtoSend.setPower(true);
-                    effectiveFlags += 1;
-                }
+                /**
+                 * TODO desactivate for testing
+                 * if (cmdtoSend.getPower().equals(false)) {
+                 * cmdtoSend.setPower(true);
+                 * effectiveFlags += 1;
+                 * }
+                 **/
                 cmdtoSend.setOperationMode(((DecimalType) command).intValue());
+                StateAttribute stateAttribute = null;
+                switch (((DecimalType) command).intValue()) {
+                    case 1:
+                        stateAttribute = new StateAttribute(new BigDecimal(this.deviceProps.getMinTempHeat()),
+                                new BigDecimal(this.deviceProps.getMaxTempHeat()), null, null, false);
+                        break;
+                    case 2:
+                    case 3:
+                        stateAttribute = new StateAttribute(new BigDecimal(this.deviceProps.getMinTempCoolDry()),
+                                new BigDecimal(this.deviceProps.getMaxTempCoolDry()), null, null, false);
+                        break;
+                    case 8:
+                        stateAttribute = new StateAttribute(new BigDecimal(this.deviceProps.getMinTempAutomatic()),
+                                new BigDecimal(this.deviceProps.getMaxTempAutomatic()), null, null, false);
+                        break;
+
+                    default:
+                        break;
+                }
+                melcloudDynamicStateDescriptionProvider.setStateOptions(channelUID, null, stateAttribute);
                 effectiveFlags += 2;
             }
             if (CHANNEL_SET_TEMPERATURE.equals(channelUID.getId())) {
