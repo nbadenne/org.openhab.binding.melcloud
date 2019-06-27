@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -35,7 +36,6 @@ import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.melcloud.internal.Connection;
-import org.openhab.binding.melcloud.internal.MelcloudDynamicStateDescriptionProvider;
 import org.openhab.binding.melcloud.internal.json.Area;
 import org.openhab.binding.melcloud.internal.json.Device;
 import org.openhab.binding.melcloud.internal.json.DeviceStatus;
@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * @author Luca Calcaterra - Initial contribution
  *
  */
-// @NonNullByDefault
+@NonNullByDefault
 public class MelCloudBridgeHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(MelCloudBridgeHandler.class);
 
@@ -63,8 +63,6 @@ public class MelCloudBridgeHandler extends BaseBridgeHandler {
     // private @Nullable LoginClientResponse loginClientRes;
     private @Nullable List<Device> deviceList;
 
-    private MelcloudDynamicStateDescriptionProvider melcloudDynamicStateDescriptionProvider;
-
     public @Nullable Connection getConnectionHandler() {
         if (this.connection != null) {
             return connection;
@@ -73,12 +71,9 @@ public class MelCloudBridgeHandler extends BaseBridgeHandler {
         return null;
     }
 
-    public MelCloudBridgeHandler(Bridge bridge,
-            MelcloudDynamicStateDescriptionProvider melcloudDynamicStateDescriptionProvider) {
+    public MelCloudBridgeHandler(Bridge bridge) {
         super(bridge);
-        if (melcloudDynamicStateDescriptionProvider != null) {
-            this.melcloudDynamicStateDescriptionProvider = melcloudDynamicStateDescriptionProvider;
-        }
+
     }
 
     @Override

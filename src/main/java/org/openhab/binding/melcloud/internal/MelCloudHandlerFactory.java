@@ -62,8 +62,7 @@ public class MelCloudHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (LOGIN_BRIDGE_THING_TYPE.equals(thingTypeUID)) {
-            MelCloudBridgeHandler handler = new MelCloudBridgeHandler((Bridge) thing,
-                    melcloudDynamicStateDescriptionProvider);
+            MelCloudBridgeHandler handler = new MelCloudBridgeHandler((Bridge) thing);
             registerDiscoveryService(handler);
             logger.debug("createThing(): LOGIN_BRIDGE_THING_TYPE: Creating an '{}' type Thing - {}", thingTypeUID,
                     handler.getID());

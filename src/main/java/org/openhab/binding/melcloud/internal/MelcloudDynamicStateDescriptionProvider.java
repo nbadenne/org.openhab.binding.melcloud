@@ -18,6 +18,8 @@ import org.eclipse.smarthome.core.types.StateDescriptionFragmentBuilder;
 import org.eclipse.smarthome.core.types.StateOption;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component(service = { DynamicStateDescriptionProvider.class,
         MelcloudDynamicStateDescriptionProvider.class }, immediate = true)
@@ -26,6 +28,8 @@ public class MelcloudDynamicStateDescriptionProvider implements DynamicStateDesc
 
     private final Map<ChannelUID, @Nullable List<StateOption>> channelOptionsMap = new ConcurrentHashMap<>();
     private final Map<ChannelUID, @Nullable StateAttribute> channelStateAttributesMap = new ConcurrentHashMap<>();
+
+    private final Logger logger = LoggerFactory.getLogger(MelcloudDynamicStateDescriptionProvider.class);
 
     /**
      * For a given channel UID, set a {@link List} of {@link StateOption}s that should be used for the channel, instead
@@ -36,16 +40,25 @@ public class MelcloudDynamicStateDescriptionProvider implements DynamicStateDesc
      */
     public void setStateOptions(ChannelUID channelUID, @Nullable List<StateOption> options,
             @Nullable StateAttribute stateAttribute) {
+        logger.debug("setStateOptions : " + channelUID.getId());
         channelOptionsMap.put(channelUID, options);
         channelStateAttributesMap.put(channelUID, stateAttribute);
+
     }
 
     @Override
     public @Nullable StateDescription getStateDescription(Channel channel,
             @Nullable StateDescription originalStateDescription, @Nullable Locale locale) {
         List<StateOption> options = channelOptionsMap.get(channel.getUID());
+        logger.debug("MelcloudDynamicStateDescriptionProvider : getStateDescription : " + channel.getUID().getId());
         StateAttribute stateAttribute = channelStateAttributesMap.get(channel.getUID());
         if (options == null || stateAttribute == null) {
+            if (options == null) {
+                logger.debug("option null");
+            }
+            if (stateAttribute == null) {
+                logger.debug("stateAttribute null");
+            }
             return null;
         }
 
@@ -54,7 +67,7 @@ public class MelcloudDynamicStateDescriptionProvider implements DynamicStateDesc
                 : StateDescriptionFragmentBuilder.create(originalStateDescription);
 
         if (channel.getUID().getId().equals(CHANNEL_SET_TEMPERATURE)) {
-
+            logger.debug("Min temp :" + stateAttribute.getMin());
             return builder.withMinimum(stateAttribute.getMin()).withMaximum(stateAttribute.getMax()).build()
                     .toStateDescription();
         }

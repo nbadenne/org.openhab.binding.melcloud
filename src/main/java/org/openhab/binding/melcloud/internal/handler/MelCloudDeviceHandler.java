@@ -20,6 +20,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.measure.quantity.Temperature;
@@ -39,6 +40,7 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
+import org.eclipse.smarthome.core.types.StateOption;
 import org.openhab.binding.melcloud.internal.Connection;
 import org.openhab.binding.melcloud.internal.MelcloudDynamicStateDescriptionProvider;
 import org.openhab.binding.melcloud.internal.StateAttribute;
@@ -121,6 +123,7 @@ public class MelCloudDeviceHandler extends BaseThingHandler {
                  **/
                 cmdtoSend.setOperationMode(((DecimalType) command).intValue());
                 StateAttribute stateAttribute = null;
+                List<StateOption> options = new ArrayList<StateOption>();
                 switch (((DecimalType) command).intValue()) {
                     case 1:
                         stateAttribute = new StateAttribute(new BigDecimal(this.deviceProps.getMinTempHeat()),
@@ -139,7 +142,8 @@ public class MelCloudDeviceHandler extends BaseThingHandler {
                     default:
                         break;
                 }
-                melcloudDynamicStateDescriptionProvider.setStateOptions(channelUID, null, stateAttribute);
+                melcloudDynamicStateDescriptionProvider
+                        .setStateOptions(thing.getChannel(CHANNEL_SET_TEMPERATURE).getUID(), options, stateAttribute);
                 effectiveFlags += 2;
             }
             if (CHANNEL_SET_TEMPERATURE.equals(channelUID.getId())) {
